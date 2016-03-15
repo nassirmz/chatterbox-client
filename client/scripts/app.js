@@ -13,6 +13,8 @@ var app = {
   app.init = function() {
    $("#main").on("click", ".username", app.addFriend);
    $("#send").on("submit", ".submit", app.handleSubmit);
+   app.fetch();
+   $(".refresh").on("click", app.refreshMessages);
   };
 
   app.send = function(message) {
@@ -44,13 +46,16 @@ var app = {
       }
     })
   };
-
+  app.refreshMessages = function () {
+    app.clearMessages();
+    app.fetch();
+  };
   app.clearMessages = function() {
     $("#chats").empty();
   };
 
   app.addMessage = function(message) {
-    $("#chats").append("<p><button class='username'>" + message.username + "</button><span>" + message.text + "</span><span>" + message.roomname + "</span></p>");
+    $("#chats").append("<p><button class='username'>" + message.username + "</button><span>" + message.text + "</span></p>");
 
   };
 
@@ -65,3 +70,6 @@ var app = {
   app.handleSubmit = function() {
 
   }
+$(document).ready(function() {
+  app.init();
+});
