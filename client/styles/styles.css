@@ -83,10 +83,3 @@ form input[type=text] {
     padding: 10px;
 }
 
-.refresh {
-    float:left;
-}
-
-#roomSelect {
-    float:right;
-}
