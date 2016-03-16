@@ -4,29 +4,63 @@ $(function() {
   app = {
     server: 'https://api.parse.com/1/classes/chatterbox',
     username: 'anonymous',
-    room: 'lobby'
-  };
-
-    app.username = window.location.search.slice(10);
-    app.escape = function (str) {
-      var div = document.createElement('div');
-      div.appendChild(document.createTextNode(str));
-      return div.innerHTML;
-    };
-
-
-    app.init = function() {
+    room: 'lobby',
+    init: function() {
       app.username = window.location.search.substr(10);
       app.$main = $("#main");
       app.$message = $("#message");
       app.$chats = $("#chats");
       app.$roomSelect = $("#roomSelect");
       app.$send = $("#send");
+      app.$roomSelect.on("change", app.saveRoom);
+      app.stopSpinner();
       app.fetch();
       setInterval(app.fetch, 3000);
-    };
+    },
+    saveRoom: function(enst) {
+      var sIndex = app.$roomSelect.prop('selectedIndex');
 
-    app.send = function(message) {
+      if(sIndex === 0) {
+        var roomname = prompt('Enter toom name');
+        if(roomname){
+          app.room = roomname;
+          app.addRoom(roomname);
+        }
+      }
+      else {
+        app.room = app.$roomSelect.val();
+        app.fetch();
+      }
+
+    },
+    fetch: function() {
+      app.startSpinner();
+      $.ajax({
+        url: app.server,
+        type: "GET",
+        contentType: "application/json",
+        data: {order: "-createdAt"},
+        complete: function() {
+          app.stopSpinner();
+        },
+        success: function(data) {
+         app.populateRooms(data.results);
+         app.populateMessages(data.results);
+        }
+      })
+    },
+    startSpinner: function() {
+      $(".spinner img").show();
+    },
+    stopSpinner: function() {
+      $(".spinner img").hide();
+    },
+    escape: function (str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    },
+    send: function(message) {
      $.ajax({
       url: this.server,
       type: "POST",
@@ -39,24 +73,8 @@ $(function() {
         console.log("chatterbox: Failed to send message. Error: ", data);
       }
      })
-    };
-
-    app.fetch = function() {
-      $.ajax({
-        url: this.server,
-        type: "GET",
-        contentType: "application/json",
-        data: {order: "-createdAt"},
-        
-        success: function(data) {
-          console.log(data);
-         app.populateRooms(data.results);
-         app.populateMessages(data.results);
-        }
-      })
-    };
-
-    app.populateRooms = function(results) {
+    },
+    populateRooms: function(results) {
       app.$roomSelect.html('<option value="__newRoom">New Room...</option><option value = "lobby" selected>:Lobby</option>');
       if(results) {
         var processedRooms = {};
@@ -70,26 +88,19 @@ $(function() {
         })
       }
       app.$roomSelect.val(app.room);
-    };
-
-    app.populateMessages = function(results) {
+    },
+    populateMessages: function(results) {
       app.clearMessages();
 
       if(Array.isArray(results)) {
         results.forEach(app.addMessage);
       }
      
-    };
-
-    app.refreshMessages = function () {
-      app.clearMessages();
-      app.fetch();
-    };
-    app.clearMessages = function() {
+    },
+    clearMessages: function() {
        app.$chats.empty();
-    };
-
-    app.addMessage = function(data) {
+    },
+    addMessage: function(data) {
       if(!data.roomname) {
         data.roomname = "lobby";
       }
@@ -107,24 +118,27 @@ $(function() {
           app.$chats.append($chat);
         }
       }
-    };
-
-    app.addRoom = function(roomname) {
+    },
+    addRoom: function(roomname) {
       var $option = $('<option />').val(app.escape(roomname)).text(app.escape(roomname));
       app.$roomSelect.append($option);
       
-    };
+    },
+    addFriend: function() {
 
-    app.addFriend = function() {
-      
+    },
+    handleSubmit: function() {
+
     }
 
-    app.handleSubmit = function() {
-      var userObj = {};
-      userObj.username = this.username;
-      userObj.text = $('textarea').value();
-      app.send(userObj);
+  };
+
+    // app.handleSubmit = function() {
+    //   var userObj = {};
+    //   userObj.username = this.username;
+    //   userObj.text = $('textarea').value();
+    //   app.send(userObj);
       
-    }
+    // }
 
 });
