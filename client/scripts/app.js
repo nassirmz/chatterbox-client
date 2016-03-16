@@ -12,7 +12,9 @@ $(function() {
       app.$chats = $("#chats");
       app.$roomSelect = $("#roomSelect");
       app.$send = $("#send");
+
       app.$roomSelect.on("change", app.saveRoom);
+      app.$send.on('submit', app.handleSubmit);
       app.stopSpinner();
       app.fetch();
       setInterval(app.fetch, 3000);
@@ -25,6 +27,8 @@ $(function() {
         if(roomname){
           app.room = roomname;
           app.addRoom(roomname);
+          app.$roomSelect.val(roomname);
+          app.fetch();
         }
       }
       else {
@@ -62,7 +66,7 @@ $(function() {
     },
     send: function(message) {
      $.ajax({
-      url: this.server,
+      url: app.server,
       type: "POST",
       data: JSON.stringify(message),
       contentType: 'application/json',
@@ -71,6 +75,9 @@ $(function() {
       },
       error: function (data) {
         console.log("chatterbox: Failed to send message. Error: ", data);
+      },
+      compelete: function() {
+        app.stopSpinner();
       }
      })
     },
@@ -78,6 +85,11 @@ $(function() {
       app.$roomSelect.html('<option value="__newRoom">New Room...</option><option value = "lobby" selected>:Lobby</option>');
       if(results) {
         var processedRooms = {};
+
+        if(app.room !== 'lobby'){
+          app.addRoom(app.room);
+          processedRooms[app.room] = true;
+        }
         results.forEach(function(data) {
           var roomname = data.roomname;
           if (roomname && !processedRooms[roomname]) {
@@ -127,18 +139,17 @@ $(function() {
     addFriend: function() {
 
     },
-    handleSubmit: function() {
+    handleSubmit: function(evt) {
+      evt.preventDefault();
 
+      var message = {
+        username: app.username,
+        roomname: app.room || 'lobby',
+        text: app.$message.val()
+      };
+      app.send(message);
     }
 
   };
-
-    // app.handleSubmit = function() {
-    //   var userObj = {};
-    //   userObj.username = this.username;
-    //   userObj.text = $('textarea').value();
-    //   app.send(userObj);
-      
-    // }
 
 });
