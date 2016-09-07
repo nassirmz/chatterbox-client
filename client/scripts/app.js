@@ -147,9 +147,6 @@ $(function() {
       if(username !==undefined) {
         console.log("chatbox: adding as afriend", username);
         app.friends[username] = true;
-        var selector = '[data-username="' + username.replace(/"/g, '\\\"') + '"]';
-        $(selector).addClass("freind");
-
       }
 
     },
